@@ -6,6 +6,8 @@
 #include <wil/com.h>
 #include "WebView2.h"
 
+#include "Utils.h"
+
 using namespace Microsoft::WRL;
 
 // Global variables
@@ -15,13 +17,10 @@ HINSTANCE hInst = nullptr;
 
 // Forward declarations
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-float GetDpiFactor();
-int DpiScale(int x);
 
 // WebView2 pointers
 static wil::com_ptr<ICoreWebView2Controller> webviewController;
 static wil::com_ptr<ICoreWebView2> webview;
-
 
 int CALLBACK WinMain(
 	_In_	 HINSTANCE hInstance,
@@ -147,28 +146,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 	return 0;
-}
-
-// DPI scaling methods
-float GetDpiFactor()
-{
-	// Lazy-load DPI factor
-	static float dpi_factor = 0.0f;
-
-	if (dpi_factor == 0.0f)
-	{
-		HDC screendc = ::GetDC(NULL);
-		int screenDpiX = ::GetDeviceCaps(screendc, LOGPIXELSX);
-		::ReleaseDC(NULL, screendc);
-
-		// Determine DPI factor as float, relative to 96 dpi
-		dpi_factor = static_cast<float>(screenDpiX) / 96.0f;
-	}
-
-	return dpi_factor;
-}
-
-int DpiScale(int x)
-{
-	return static_cast<int>(ceilf(static_cast<float>(x) * GetDpiFactor()));
 }
