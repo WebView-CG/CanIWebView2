@@ -13,6 +13,7 @@ ConfigJson LoadConfigJson(const std::string& path)
 	ret.preferUnstableChannel = false;
 	ret.additionalBrowserArguments = "";
 	ret.hostingMode = "";
+	ret.browserExecutableFolder = "";
 
 	// If file does not exist, just use defaults
 	if (!FileExists(path))
@@ -42,6 +43,9 @@ ConfigJson LoadConfigJson(const std::string& path)
 
 	if (parsedJson.contains("hostingMode"))
 		ret.hostingMode = parsedJson["hostingMode"].get<std::string>();
+
+	if (parsedJson.contains("browserExecutableFolder"))
+		ret.browserExecutableFolder = parsedJson["browserExecutableFolder"].get<std::string>();
 
 	return ret;
 }

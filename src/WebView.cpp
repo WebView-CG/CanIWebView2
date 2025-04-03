@@ -48,6 +48,29 @@ int CALLBACK WinMain(
 		SetEnvironmentVariable(L"COREWEBVIEW2_FORCED_HOSTING_MODE", L"COREWEBVIEW2_HOSTING_MODE_WINDOW_TO_VISUAL");
 	}
 
+	// If config.json specifies browserExecutableFolder, call GetAvailableCoreWebView2BrowserVersionString()
+	// while starting up to verify it is valid. If it is not, this allows showing an error message before
+	// the main application window is created.
+	// See: https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution
+	std::wstring browserExecutableFolderWstr;		// storage for browserExecutableFolder
+	LPCWSTR browserExecutableFolder = nullptr;
+
+	if (!configJson.browserExecutableFolder.empty())
+	{
+		browserExecutableFolderWstr = Utf8ToWide(configJson.browserExecutableFolder);
+		browserExecutableFolder = browserExecutableFolderWstr.c_str();
+
+		LPWSTR versionInfo;
+		GetAvailableCoreWebView2BrowserVersionString(browserExecutableFolder, &versionInfo);
+		if (versionInfo == nullptr)
+		{
+			MessageBox(NULL, L"The \"browserExecutableFolder\" option is set, but WebView2 failed to initialize it. Check there is a valid fixed distribution of WebView2 in the specified folder.", szTitle, MB_ICONERROR);
+			return 1;
+		}
+
+		CoTaskMemFree(versionInfo);
+	}
+
 	/////////////////////////////////////////////////////
 	// Register window class
 	WNDCLASSEX wcex;
@@ -115,7 +138,7 @@ int CALLBACK WinMain(
 		options->put_AdditionalBrowserArguments(Utf8ToWide(configJson.additionalBrowserArguments).c_str());
 	}
 
-	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(),
+	CreateCoreWebView2EnvironmentWithOptions(browserExecutableFolder, nullptr, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd, configJson](HRESULT result, ICoreWebView2Environment* env) -> HRESULT
 			{
