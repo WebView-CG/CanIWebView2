@@ -3,7 +3,6 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <string>
-#include <tchar.h>
 #include <wrl.h>
 #include <wil/com.h>
 // <IncludeHeader>
@@ -16,10 +15,10 @@ using namespace Microsoft::WRL;
 // Global variables
 
 // The main window class name.
-static TCHAR szWindowClass[] = _T("DesktopApp");
+static WCHAR szWindowClass[] = L"DesktopApp";
 
 // The string that appears in the application's title bar.
-static TCHAR szTitle[] = _T("WebView sample");
+static WCHAR szTitle[] = L"WebView sample";
 
 HINSTANCE hInst;
 
@@ -61,8 +60,8 @@ int CALLBACK WinMain(
 	if (!RegisterClassEx(&wcex))
 	{
 		MessageBox(NULL,
-			_T("Call to RegisterClassEx failed!"),
-			_T("Windows Desktop Guided Tour"),
+			L"Call to RegisterClassEx failed!",
+			L"Windows Desktop Guided Tour",
 			NULL);
 
 		return 1;
@@ -96,8 +95,8 @@ int CALLBACK WinMain(
 	if (!hWnd)
 	{
 		MessageBox(NULL,
-			_T("Call to CreateWindow failed!"),
-			_T("Windows Desktop Guided Tour"),
+			L"Call to CreateWindow failed!",
+			L"Windows Desktop Guided Tour",
 			NULL);
 
 		return 1;
@@ -218,7 +217,7 @@ int CALLBACK WinMain(
 //  WM_DESTROY  - post a quit message and return
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	TCHAR greeting[] = _T("Hello, Windows desktop!");
+	TCHAR greeting[] = L"Hello, Windows desktop!";
 
 	switch (message)
 	{
