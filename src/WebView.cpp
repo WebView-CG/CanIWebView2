@@ -92,9 +92,16 @@ int CALLBACK WinMain(
 	// The default channel search order is the WebView2 Runtime, Beta, Dev, and Canary (i.e. stable to unstable).
 	// When preferUnstableCannel is true in config.json, set the ChannelSearchKind option to
 	// to COREWEBVIEW2_CHANNEL_SEARCH_KIND_LEAST_STABLE which reverses the channel search order.
+	// See: https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/set-preview-channel
 	if (configJson.preferUnstableChannel)
 	{
 		options->put_ChannelSearchKind(COREWEBVIEW2_CHANNEL_SEARCH_KIND_LEAST_STABLE);
+	}
+
+	// Specify additional browser arguments if non-empty string provided
+	if (!configJson.additionalBrowserArguments.empty())
+	{
+		options->put_AdditionalBrowserArguments(Utf8ToWide(configJson.additionalBrowserArguments).c_str());
 	}
 
 	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(),
