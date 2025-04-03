@@ -32,6 +32,10 @@ static wil::com_ptr<ICoreWebView2Controller> webviewController;
 // Pointer to WebView window
 static wil::com_ptr<ICoreWebView2> webview;
 
+// DPI scaling methods
+float GetDpiFactor();
+int DpiScale(int x);
+
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
@@ -82,7 +86,7 @@ int CALLBACK WinMain(
 		szTitle,
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT,
-		1200, 900,
+		DpiScale(1200), DpiScale(900),
 		NULL,
 		NULL,
 		hInstance,
@@ -234,4 +238,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 	return 0;
+}
+
+// DPI scaling methods
+float GetDpiFactor()
+{
+	// Lazy-load DPI factor
+	static float dpi_factor = 0.0f;
+
+	if (dpi_factor == 0.0f)
+	{
+		HDC screendc = ::GetDC(NULL);
+		int screenDpiX = ::GetDeviceCaps(screendc, LOGPIXELSX);
+		::ReleaseDC(NULL, screendc);
+
+		// Determine DPI factor as float, relative to 96 dpi
+		dpi_factor = static_cast<float>(screenDpiX) / 96.0f;
+	}
+
+	return dpi_factor;
+}
+
+int DpiScale(int x)
+{
+	return static_cast<int>(ceilf(static_cast<float>(x) * GetDpiFactor()));
 }
