@@ -8,6 +8,7 @@ struct ConfigJson {
 	std::string additionalBrowserArguments;
 	std::string hostingMode;
 	std::string browserExecutableFolder;
+	std::string userDataFolder;
 };
 
 ConfigJson LoadConfigJson(const std::string& path);

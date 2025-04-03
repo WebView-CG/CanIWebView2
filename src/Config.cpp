@@ -14,6 +14,7 @@ ConfigJson LoadConfigJson(const std::string& path)
 	ret.additionalBrowserArguments = "";
 	ret.hostingMode = "";
 	ret.browserExecutableFolder = "";
+	ret.userDataFolder = "";
 
 	// If file does not exist, just use defaults
 	if (!FileExists(path))
@@ -46,6 +47,9 @@ ConfigJson LoadConfigJson(const std::string& path)
 
 	if (parsedJson.contains("browserExecutableFolder"))
 		ret.browserExecutableFolder = parsedJson["browserExecutableFolder"].get<std::string>();
+
+	if (parsedJson.contains("userDataFolder"))
+		ret.userDataFolder = parsedJson["userDataFolder"].get<std::string>();
 
 	return ret;
 }

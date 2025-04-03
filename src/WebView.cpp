@@ -138,7 +138,12 @@ int CALLBACK WinMain(
 		options->put_AdditionalBrowserArguments(Utf8ToWide(configJson.additionalBrowserArguments).c_str());
 	}
 
-	CreateCoreWebView2EnvironmentWithOptions(browserExecutableFolder, nullptr, options.Get(),
+	// If the userDataFolder option is specified, pass it as an LPCWSTR; however if it is not specified,
+	// pass nullptr for the corresponding parameter in CreateCoreWebView2EnvironmentWithOptions().
+	std::wstring userDataFolderWstr = Utf8ToWide(configJson.userDataFolder);
+	LPCWSTR userDataFolder = (userDataFolderWstr.empty() ? nullptr : userDataFolderWstr.c_str());
+
+	CreateCoreWebView2EnvironmentWithOptions(browserExecutableFolder, userDataFolder, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd, configJson](HRESULT result, ICoreWebView2Environment* env) -> HRESULT
 			{
