@@ -37,6 +37,14 @@ int CALLBACK WinMain(
 	std::string configJsonPath = FolderFromPath(GetModulePath()) + "config.json";
 	ConfigJson configJson = LoadConfigJson(configJsonPath);
 
+	// If config.json specifies the hosting mode as "window-to-visual", force this hosting mode by setting the
+	// environment variable COREWEBVIEW2_FORCED_HOSTING_MODE to COREWEBVIEW2_HOSTING_MODE_WINDOW_TO_VISUAL.
+	// See: https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/windowed-vs-visual-hosting
+	if (configJson.hostingMode == "window-to-visual")
+	{
+		SetEnvironmentVariable(L"COREWEBVIEW2_FORCED_HOSTING_MODE", L"COREWEBVIEW2_HOSTING_MODE_WINDOW_TO_VISUAL");
+	}
+
 	/////////////////////////////////////////////////////
 	// Register window class
 	WNDCLASSEX wcex;

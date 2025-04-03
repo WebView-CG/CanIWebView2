@@ -12,6 +12,7 @@ ConfigJson LoadConfigJson(const std::string& path)
 	ret.startUrl = "https://github.com/WebView-CG/CanIWebView2";
 	ret.preferUnstableChannel = false;
 	ret.additionalBrowserArguments = "";
+	ret.hostingMode = "";
 
 	// If file does not exist, just use defaults
 	if (!FileExists(path))
@@ -38,6 +39,9 @@ ConfigJson LoadConfigJson(const std::string& path)
 
 	if (parsedJson.contains("additionalBrowserArguments"))
 		ret.additionalBrowserArguments = parsedJson["additionalBrowserArguments"].get<std::string>();
+
+	if (parsedJson.contains("hostingMode"))
+		ret.hostingMode = parsedJson["hostingMode"].get<std::string>();
 
 	return ret;
 }
