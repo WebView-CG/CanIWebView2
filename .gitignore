@@ -1,5 +1,5 @@
-.vs/
-packages/
-WebView2.A1238CE8/
-x64/
+src/.vs/
+src/packages/
+src/CanIWebView2/
+src/x64/
 *.vcxproj.user
