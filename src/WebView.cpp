@@ -35,6 +35,14 @@ int CALLBACK WinMain(
 	std::string configJsonPath = FolderFromPath(GetModulePath()) + "config.json";
 	ConfigJson configJson = LoadConfigJson(configJsonPath);
 
+	// The default channel search order is the WebView2 Runtime, Beta, Dev, and Canary (i.e. stable to unstable).
+	// When preferUnstableCannel is true in config.json, set the environment variable WEBVIEW2_RELEASE_CHANNEL_PREFERENCE
+	// to 1 which reverses the channel search order.
+	if (configJson.preferUnstableChannel)
+	{
+		SetEnvironmentVariable(L"WEBVIEW2_RELEASE_CHANNEL_PREFERENCE", L"1");
+	}
+
 	/////////////////////////////////////////////////////
 	// Register window class
 	WNDCLASSEX wcex;
