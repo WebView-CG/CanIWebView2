@@ -245,7 +245,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="HelloWebView.cpp" />
+    <ClCompile Include="WebView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
