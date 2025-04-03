@@ -1,47 +1,37 @@
-// compile with: /D_UNICODE /DUNICODE /DWIN32 /D_WINDOWS /c
 
 #include <windows.h>
 #include <stdlib.h>
 #include <string>
 #include <wrl.h>
 #include <wil/com.h>
-// <IncludeHeader>
-// include WebView2 header
 #include "WebView2.h"
-// </IncludeHeader>
 
 using namespace Microsoft::WRL;
 
 // Global variables
+static WCHAR szWindowClass[] = L"CanIWebView2";
+static WCHAR szTitle[] = L"CanIWebView2";
+HINSTANCE hInst = nullptr;
 
-// The main window class name.
-static WCHAR szWindowClass[] = L"DesktopApp";
-
-// The string that appears in the application's title bar.
-static WCHAR szTitle[] = L"WebView sample";
-
-HINSTANCE hInst;
-
-// Forward declarations of functions included in this code module:
+// Forward declarations
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-
-// Pointer to WebViewController
-static wil::com_ptr<ICoreWebView2Controller> webviewController;
-
-// Pointer to WebView window
-static wil::com_ptr<ICoreWebView2> webview;
-
-// DPI scaling methods
 float GetDpiFactor();
 int DpiScale(int x);
 
+// WebView2 pointers
+static wil::com_ptr<ICoreWebView2Controller> webviewController;
+static wil::com_ptr<ICoreWebView2> webview;
+
+
 int CALLBACK WinMain(
-	_In_ HINSTANCE hInstance,
-	_In_ HINSTANCE hPrevInstance,
-	_In_ LPSTR     lpCmdLine,
-	_In_ int       nCmdShow
+	_In_	 HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_	 LPSTR     lpCmdLine,
+	_In_	 int       nCmdShow
 )
 {
+	/////////////////////////////////////////////////////
+	// Register window class
 	WNDCLASSEX wcex;
 
 	wcex.cbSize = sizeof(WNDCLASSEX);
@@ -59,27 +49,14 @@ int CALLBACK WinMain(
 
 	if (!RegisterClassEx(&wcex))
 	{
-		MessageBox(NULL,
-			L"Call to RegisterClassEx failed!",
-			L"Windows Desktop Guided Tour",
-			NULL);
-
+		MessageBox(NULL, L"Call to RegisterClassEx failed!", szTitle, NULL);
 		return 1;
 	}
 
-	// Store instance handle in our global variable
 	hInst = hInstance;
 
-	// The parameters to CreateWindow explained:
-	// szWindowClass: the name of the application
-	// szTitle: the text that appears in the title bar
-	// WS_OVERLAPPEDWINDOW: the type of window to create
-	// CW_USEDEFAULT, CW_USEDEFAULT: initial position (x, y)
-	// 500, 100: initial size (width, length)
-	// NULL: the parent of this window
-	// NULL: this application does not have a menu bar
-	// hInstance: the first parameter from WinMain
-	// NULL: not used in this application
+	/////////////////////////////////////////////////////
+	// Create window
 	HWND hWnd = CreateWindow(
 		szWindowClass,
 		szTitle,
@@ -94,24 +71,15 @@ int CALLBACK WinMain(
 
 	if (!hWnd)
 	{
-		MessageBox(NULL,
-			L"Call to CreateWindow failed!",
-			L"Windows Desktop Guided Tour",
-			NULL);
-
+		MessageBox(NULL, L"Call to CreateWindow failed!", szTitle, NULL);
 		return 1;
 	}
 
-	// The parameters to ShowWindow explained:
-	// hWnd: the value returned from CreateWindow
-	// nCmdShow: the fourth parameter from WinMain
-	ShowWindow(hWnd,
-		nCmdShow);
+	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
-	// <-- WebView2 sample code starts here -->
-	// Step 3 - Create a single WebView within the parent window
-	// Locate the browser and set up the environment for WebView
+	/////////////////////////////////////////////////////
+	// Create and initialize WebView2
 	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
@@ -124,8 +92,7 @@ int CALLBACK WinMain(
 							webviewController->get_CoreWebView2(&webview);
 						}
 
-						// Add a few settings for the webview
-						// The demo step is redundant since the values are the default settings
+						// Specify WebView2 settings
 						wil::com_ptr<ICoreWebView2Settings> settings;
 						webview->get_Settings(&settings);
 						settings->put_IsScriptEnabled(TRUE);
@@ -137,69 +104,17 @@ int CALLBACK WinMain(
 						GetClientRect(hWnd, &bounds);
 						webviewController->put_Bounds(bounds);
 
-						// Schedule an async task to navigate to Bing
-						webview->Navigate(L"https://www.bing.com/");
-
-						// <NavigationEvents>
-						// Step 4 - Navigation events
-						// register an ICoreWebView2NavigationStartingEventHandler to cancel any non-https navigation
-						EventRegistrationToken token;
-						webview->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>(
-							[](ICoreWebView2* webview, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
-								wil::unique_cotaskmem_string uri;
-								args->get_Uri(&uri);
-								std::wstring source(uri.get());
-								if (source.substr(0, 5) != L"https") {
-									args->put_Cancel(true);
-								}
-								return S_OK;
-							}).Get(), &token);
-						// </NavigationEvents>
-
-						// <Scripting>
-						// Step 5 - Scripting
-						// Schedule an async task to add initialization script that freezes the Object object
-						webview->AddScriptToExecuteOnDocumentCreated(L"Object.freeze(Object);", nullptr);
-						// Schedule an async task to get the document URL
-						webview->ExecuteScript(L"window.document.URL;", Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
-							[](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
-								LPCWSTR URL = resultObjectAsJson;
-								//doSomethingWithURL(URL);
-								return S_OK;
-							}).Get());
-						// </Scripting>
-
-						// <CommunicationHostWeb>
-						// Step 6 - Communication between host and web content
-						// Set an event handler for the host to return received message back to the web content
-						webview->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>(
-							[](ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
-								wil::unique_cotaskmem_string message;
-								args->TryGetWebMessageAsString(&message);
-								// processMessage(&message);
-								webview->PostWebMessageAsString(message.get());
-								return S_OK;
-							}).Get(), &token);
-
-						// Schedule an async task to add initialization script that
-						// 1) Add an listener to print message from the host
-						// 2) Post document URL to the host
-						webview->AddScriptToExecuteOnDocumentCreated(
-							L"window.chrome.webview.addEventListener(\'message\', event => alert(event.data));" \
-							L"window.chrome.webview.postMessage(window.document.URL);",
-							nullptr);
-						// </CommunicationHostWeb>
+						// Schedule an async task to navigate to the starting URL
+						webview->Navigate(L"https://github.com/WebView-CG");
 
 						return S_OK;
 					}).Get());
 				return S_OK;
 			}).Get());
-
-
 	
-	// <-- WebView2 sample code ends here -->
 
-	// Main message loop:
+	/////////////////////////////////////////////////////
+	// Main message loop
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
@@ -210,15 +125,10 @@ int CALLBACK WinMain(
 	return (int)msg.wParam;
 }
 
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE:  Processes messages for the main window.
-//
-//  WM_DESTROY  - post a quit message and return
+/////////////////////////////////////////////////////
+// Window procedure
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	TCHAR greeting[] = L"Hello, Windows desktop!";
-
 	switch (message)
 	{
 	case WM_SIZE:
