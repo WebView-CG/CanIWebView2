@@ -2,4 +2,6 @@ src/.vs/
 src/packages/
 src/CanIWebView2/
 src/x64/
+src/Release/
+src/ARM64/
 *.vcxproj.user
