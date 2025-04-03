@@ -32,6 +32,9 @@ int CALLBACK WinMain(
 	_In_	 int       nCmdShow
 )
 {
+	// Initialize COM for WebView
+	std::ignore = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+
 	/////////////////////////////////////////////////////
 	// Load config.json from same folder as executable
 	std::string configJsonPath = FolderFromPath(GetModulePath()) + "config.json";
