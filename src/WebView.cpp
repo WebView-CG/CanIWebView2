@@ -114,12 +114,14 @@ int CALLBACK WinMain(
 
 	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-			[hWnd, configJson](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
-
+			[hWnd, configJson](HRESULT result, ICoreWebView2Environment* env) -> HRESULT
+			{
 				// Create a CoreWebView2Controller and get the associated CoreWebView2 whose parent is the main window hWnd
 				env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-					[hWnd, configJson](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
-						if (controller != nullptr) {
+					[hWnd, configJson](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT
+					{
+						if (controller != nullptr)
+						{
 							webviewController = controller;
 							webviewController->get_CoreWebView2(&webview);
 						}
@@ -164,11 +166,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_SIZE:
-		if (webviewController != nullptr) {
+		if (webviewController != nullptr)
+		{
 			RECT bounds;
 			GetClientRect(hWnd, &bounds);
 			webviewController->put_Bounds(bounds);
 		};
+		break;
+	case WM_MOVE:
+	case WM_MOVING:
+		if (webviewController != nullptr)
+		{
+			webviewController->NotifyParentWindowPositionChanged();
+		}
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
