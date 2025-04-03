@@ -7,6 +7,7 @@
 #include "WebView2.h"
 
 #include "Utils.h"
+#include "Config.h"
 
 using namespace Microsoft::WRL;
 
@@ -29,6 +30,11 @@ int CALLBACK WinMain(
 	_In_	 int       nCmdShow
 )
 {
+	/////////////////////////////////////////////////////
+	// Load config.json from same folder as executable
+	std::string configJsonPath = FolderFromPath(GetModulePath()) + "config.json";
+	ConfigJson configJson = LoadConfigJson(configJsonPath);
+
 	/////////////////////////////////////////////////////
 	// Register window class
 	WNDCLASSEX wcex;
@@ -81,11 +87,11 @@ int CALLBACK WinMain(
 	// Create and initialize WebView2
 	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-			[hWnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+			[hWnd, configJson](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 
 				// Create a CoreWebView2Controller and get the associated CoreWebView2 whose parent is the main window hWnd
 				env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-					[hWnd](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+					[hWnd, configJson](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
 						if (controller != nullptr) {
 							webviewController = controller;
 							webviewController->get_CoreWebView2(&webview);
@@ -104,7 +110,7 @@ int CALLBACK WinMain(
 						webviewController->put_Bounds(bounds);
 
 						// Schedule an async task to navigate to the starting URL
-						webview->Navigate(L"https://github.com/WebView-CG");
+						webview->Navigate(Utf8ToWide(configJson.startUrl).c_str());
 
 						return S_OK;
 					}).Get());
