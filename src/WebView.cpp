@@ -4,7 +4,9 @@
 #include <string>
 #include <wrl.h>
 #include <wil/com.h>
+
 #include "WebView2.h"
+#include "WebView2EnvironmentOptions.h"
 
 #include "Utils.h"
 #include "Config.h"
@@ -34,14 +36,6 @@ int CALLBACK WinMain(
 	// Load config.json from same folder as executable
 	std::string configJsonPath = FolderFromPath(GetModulePath()) + "config.json";
 	ConfigJson configJson = LoadConfigJson(configJsonPath);
-
-	// The default channel search order is the WebView2 Runtime, Beta, Dev, and Canary (i.e. stable to unstable).
-	// When preferUnstableCannel is true in config.json, set the environment variable WEBVIEW2_RELEASE_CHANNEL_PREFERENCE
-	// to 1 which reverses the channel search order.
-	if (configJson.preferUnstableChannel)
-	{
-		SetEnvironmentVariable(L"WEBVIEW2_RELEASE_CHANNEL_PREFERENCE", L"1");
-	}
 
 	/////////////////////////////////////////////////////
 	// Register window class
@@ -93,7 +87,17 @@ int CALLBACK WinMain(
 
 	/////////////////////////////////////////////////////
 	// Create and initialize WebView2
-	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
+	auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+
+	// The default channel search order is the WebView2 Runtime, Beta, Dev, and Canary (i.e. stable to unstable).
+	// When preferUnstableCannel is true in config.json, set the ChannelSearchKind option to
+	// to COREWEBVIEW2_CHANNEL_SEARCH_KIND_LEAST_STABLE which reverses the channel search order.
+	if (configJson.preferUnstableChannel)
+	{
+		options->put_ChannelSearchKind(COREWEBVIEW2_CHANNEL_SEARCH_KIND_LEAST_STABLE);
+	}
+
+	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 			[hWnd, configJson](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 
